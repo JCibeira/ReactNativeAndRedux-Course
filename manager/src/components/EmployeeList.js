@@ -1,0 +1,67 @@
+import _ from 'lodash';
+import { Actions } from 'react-native-router-flux';
+import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import { ListView, Text, TouchableWithoutFeedback, View } from 'react-native';
+import { employeesFetch } from '../actions';
+import { CardSection } from './common';
+
+class EmployeeList extends Component {
+    componentWillMount() {
+        this.props.employeesFetch();
+        this.createDataSource(this.props);
+    }
+
+    componentWillReceiveProps(nextProps) {
+        this.createDataSource(nextProps);
+    }
+
+    createDataSource({ employees }) {
+        const ds = new ListView.DataSource({
+            rowHasChanged: (r1, r2) => r1 !== r2
+        });
+        this.dataSource = ds.cloneWithRows(employees);
+    }
+
+    render() {
+        return (
+            <ListView
+                enableEmptySections
+                dataSource={this.dataSource}
+                renderRow={this.renderRow}
+            >
+            </ListView>
+        );
+    }
+
+    renderRow(employee) {
+        return (
+            <TouchableWithoutFeedback onPress={() => Actions.employeeEdit({ employee })}>
+                <View>
+                    <CardSection>
+                        <Text style={styles.titleStyle}>
+                            {employee.name}
+                        </Text>
+                    </CardSection>
+                </View>
+            </TouchableWithoutFeedback> 
+        );
+    }
+}
+
+const styles = {
+    titleStyle: {
+        color: '#000',
+        paddingLeft: 15,
+        fontSize: 18,
+    }
+};
+
+const mapStateToProps = state => {  
+    const employees = _.map(state.employees, (val, uid) => {
+            return { ...val, uid };
+    });
+    return { employees };
+};
+
+export default connect(mapStateToProps, { employeesFetch })(EmployeeList);
